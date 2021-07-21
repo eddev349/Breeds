@@ -1,24 +1,46 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useCallback, useEffect, useState } from "react";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import { BreedsContext, ImagesContext } from "./utils/contexts";
+import api from "./utils/api";
+import Home from "./pages/Home";
+import Breed from "./pages/Breed";
 
 function App() {
+  const [breeds, setBreeds] = useState([]);
+  const [images, setImages] = useState({});
+
+  useEffect(() => {
+    const loadBreeds = async () => {
+      const result = await api.breeds();
+      setBreeds(result);
+    };
+    loadBreeds();
+  }, []);
+
+  const setBreedImages = useCallback(
+    (breed, breedImages) => {
+      setImages({ ...images, [breed]: breedImages });
+    },
+    [images]
+  );
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BreedsContext.Provider value={breeds}>
+      <ImagesContext.Provider value={{ images, setImages: setBreedImages }}>
+        <Router>
+          <div className="App">
+            <Switch>
+              <Route path="/:breed">
+                <Breed />
+              </Route>
+              <Route path="/">
+                <Home />
+              </Route>
+            </Switch>
+          </div>
+        </Router>
+      </ImagesContext.Provider>
+    </BreedsContext.Provider>
   );
 }
 
